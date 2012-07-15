@@ -1,10 +1,10 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php 
 /**
 * @file     Mail Library
 * 
 * @author   Hristo Georigev
 * @company  42soft ltd
-* @email    hristo@42-soft.com
+* @email    h.georgiev@hotmail.com
 * @license  check LICENSE.txt
 */   
 class MailLib { 
@@ -14,7 +14,7 @@ class MailLib {
     
     
     function __construct(){
-        //$this->CI =& get_instance();
+        //$this->CI =& get_instance(); // needed for CodeIgniter
     }
     
     /**
@@ -34,9 +34,11 @@ class MailLib {
         $ssl = ($ssl == true) ? "/ssl" : '';
         $hostname = "{" . $server . ":" .$port . "/imap" . $ssl ."}INBOX"; 
         
-        // $hostname = "{imap.google.com:993/imap/ssl}INBOX"; 
-        // /novalidate-cert
-        //var_dump($hostname);
+		/*
+		 * Should produce something like this: 
+         * $hostname = "{imap.google.com:993/imap/ssl}INBOX"; 
+         * /novalidate-cert ( maybe you would like to add this)
+		 */
         
         
         $this->inbox = imap_open($hostname,$username,$password) or die('Cannot connect to mail server: ' . imap_last_error());
@@ -115,10 +117,8 @@ class MailLib {
         if(empty($header)){
             throw new Exception('Cannot retrieve header');
         }
-        
-        //$overview = $this->getOverview($this->inbox, $email_id );
-        
-        
+     
+
         $email = array();
         $email['id'] = $email_id;
         $email['sender'] = $this->getSender($header);
@@ -127,7 +127,7 @@ class MailLib {
         $email['date'] = $header->udate;
         $email['body'] = $this->getBody($email_id);
         $email['attachments'] = $this->getAttachments($email_id);
-        //$this->getAttachments($email_id);
+      
         return $email;
     }
     
@@ -203,7 +203,7 @@ class MailLib {
         
             if(!empty($subject)){
                 $encoding = $subject[0]->charset;
-                if($encoding == "default"){  /* i have to idea why */
+                if($encoding == "default"){  // i have no idea why 
                     $encoding = "US-ASCII";
                 }
                 $text = $subject[0]->text;
@@ -225,7 +225,6 @@ class MailLib {
     */
     private function getBody($email_id){
         $structure = imap_fetchstructure($this->inbox, $email_id);  
-        //$mime =  $this->get_mime_type($structure);
         
         $txt = $this->get_part($this->inbox, $email_id, 'TEXT/PLAIN');
         $html = $this->get_part($this->inbox, $email_id, 'TEXT/HTML');
@@ -236,11 +235,7 @@ class MailLib {
             $body = str_replace("\n", '<br />', $txt); 
         }
         
-        //var_dump($body); 
-        //print "<hr>";
-       
-        //$body = imap_utf8($body);
-        
+		
         return $body;
     }
     
@@ -275,13 +270,6 @@ class MailLib {
         }
         
         
-        
-        /*if(!empty($att)){
-            print_r($att); 
-            print_r($selectBoxDisplay);
-            die();
-        }  */
-    
         if(isset($selectBoxDisplay)){
             return $selectBoxDisplay;
         }
@@ -300,7 +288,7 @@ class MailLib {
     */
     public function getAttachment($file, $email_id){
         
-        /* get in which part of the mail is the required attachment */
+        // get in which part of the mail is the required attachment
         $struct = imap_fetchstructure($this->inbox, $email_id);
         $attachment_part = null;
         foreach($struct->parts as $part_id => $p){
@@ -313,7 +301,7 @@ class MailLib {
         }
         
         
-        /* get attached file */
+        // get attached file
         $att = imap_fetchbody($this->inbox, $email_id, $attachment_part);
         $att = base64_decode($att);
         return $att;
